@@ -63,3 +63,11 @@
 ### Інші інструменти
 - **Docker** — контейнеризація застосунку  
 - **GitHub Actions** — CI/CD  
+
+## Діаграми
+
+![Діаграма компонентів](./images/components.png)
+
+![ER-Діаграма](./images/er.png)
+
+![Сценарії використання](./images/scenarios.png)
