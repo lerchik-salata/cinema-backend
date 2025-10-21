@@ -6,6 +6,7 @@ import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { MoviesModule } from "./movies/movies.module"; // Імпорт нашого модуля
+import { AdminModule } from "./admin/admin.module";
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { MoviesModule } from "./movies/movies.module"; // Імпорт нашо�
     // Наші модулі
     AuthModule,
     UsersModule,
-    MoviesModule, // Додаємо наш модуль
+    MoviesModule,
+    AdminModule, // Додаємо наш модуль
   ],
   controllers: [AppController],
   providers: [AppService],

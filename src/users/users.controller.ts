@@ -1,7 +1,9 @@
 import { Controller, Get, UseGuards, Request, NotFoundException } from "@nestjs/common";
 import { UsersService } from "./user.service";
-import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import type { AuthenticatedRequest } from "src/auth/auth.interface";
+import { plainToInstance } from "class-transformer";
+import { UserResponseDto } from "./dto/user.dto";
 
 @Controller("users")
 export class UsersController {
@@ -16,11 +18,8 @@ export class UsersController {
       throw new NotFoundException("User profile not found");
     }
 
-    return {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      message: "This is protected information obtained using a JWT token.",
-    };
+    const safeUser = plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true });
+
+    return safeUser;
   }
 }

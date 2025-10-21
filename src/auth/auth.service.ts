@@ -4,6 +4,8 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { UserResponseDto } from "src/users/dto/user.dto";
+import { plainToInstance } from "class-transformer";
 
 @Injectable()
 export class AuthService {
@@ -25,9 +27,11 @@ export class AuthService {
     const newUser = await this.usersService.create(createUserDto, passwordHash);
 
     const payload = { sub: newUser._id, username: newUser.username };
+    const safeUser = plainToInstance(UserResponseDto, newUser, { excludeExtraneousValues: true });
+
     return {
       access_token: await this.jwtService.signAsync(payload),
-      user: { id: newUser._id, username: newUser.username },
+      user: safeUser,
     };
   }
 
