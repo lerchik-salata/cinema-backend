@@ -8,6 +8,7 @@ import { UsersModule } from "./users/users.module";
 import { MoviesModule } from "./movies/movies.module"; // Імпорт нашого модуля
 import { AdminModule } from "./admin/admin.module";
 import { ListsModule } from "./lists/lists.module";
+import { ForumsModule } from "./fotums/forums.module";
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { ListsModule } from "./lists/lists.module";
     UsersModule,
     MoviesModule,
     AdminModule,
-    ListsModule, // Додаємо наш модуль
+    ListsModule,
+    ForumsModule, // Додаємо наш модуль
   ],
   controllers: [AppController],
   providers: [AppService],
