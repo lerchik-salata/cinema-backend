@@ -2,47 +2,34 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { UsersService } from "src/users/user.service";
 import { plainToInstance } from "class-transformer";
 import { UserResponseDto } from "src/users/dto/user.dto";
+import { User, UserDocument } from "src/users/schemas/user.schema";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
 
 @Injectable()
 export class AdminUsersService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+  ) {}
 
   async findAll(): Promise<UserResponseDto[]> {
-    await Promise.resolve();
-    const allUsers = this.usersService["users"];
+    const allUsers = await this.userModel.find().exec();
 
     return plainToInstance(UserResponseDto, allUsers, { excludeExtraneousValues: true });
   }
 
   async findOneById(id: string): Promise<UserResponseDto> {
-    await Promise.resolve();
-    const user = this.usersService["users"].find((u) => u._id === id);
+    const user = await this.usersService.findOneById(id);
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    return plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true });
-  }
-
-  async update(id: string, updateData: Partial<UserResponseDto>): Promise<UserResponseDto> {
-    await Promise.resolve();
-    const user = this.usersService["users"].find((u) => u._id === id);
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
-
-    Object.assign(user, updateData);
     return plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true });
   }
 
   async delete(id: string): Promise<{ message: string }> {
-    await Promise.resolve();
-    const userIndex = this.usersService["users"].findIndex((u) => u._id === id);
-    if (userIndex === -1) {
-      throw new NotFoundException("User not found");
-    }
-
-    this.usersService["users"].splice(userIndex, 1);
+    await this.usersService.remove(id);
     return { message: `User ${id} successfully deleted` };
   }
 }

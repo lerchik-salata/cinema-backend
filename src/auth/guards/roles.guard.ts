@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, mixin, Type } from "@nestjs/common";
-import { UserRole } from "src/users/user.service";
+import { UserRole } from "src/users/enums/user-role.enum";
 import { Observable } from "rxjs";
 import type { AuthenticatedRequest } from "src/auth/auth.interface";
 

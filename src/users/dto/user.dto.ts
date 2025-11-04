@@ -1,6 +1,6 @@
 import { IsString, IsEmail, IsDateString, IsNotEmpty, IsEnum } from "class-validator";
 import { Exclude, Expose } from "class-transformer";
-import { User, UserRole } from "../user.service";
+import { UserRole } from "../enums/user-role.enum";
 
 @Exclude()
 export class UserResponseDto {
@@ -24,7 +24,7 @@ export class UserResponseDto {
   @IsDateString()
   createdAt: Date;
 
-  constructor(partial: Partial<User>) {
+  constructor(partial: Partial<UserResponseDto>) {
     Object.assign(this, partial);
   }
 }

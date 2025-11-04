@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { UserRole } from "../users/user.service";
+import { UserRole } from "../users/enums/user-role.enum";
 
 export interface JwtPayload {
   userId: string;
