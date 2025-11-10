@@ -1,58 +1,90 @@
-import { Injectable } from "@nestjs/common";
-import * as bcrypt from "bcrypt";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUserDto } from "../auth/dto/create-user.dto";
-
-export enum UserRole {
-  USER = "user",
-  ADMIN = "admin",
-}
-
-export interface User {
-  _id: string;
-  email: string;
-  username: string;
-  passwordHash: string;
-  role: UserRole;
-}
+import { HashingService } from "src/auth/hashing/hashing.service";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { User, UserDocument } from "./schemas/user.schema";
+import { UserRole } from "./enums/user-role.enum";
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [];
-  private nextId = 1;
-
-  constructor() {}
+  constructor(
+    private hashingService: HashingService,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+  ) {}
 
   async onModuleInit() {
-    await this.createDummyUser("test@lab3.com", "TestUser", "password123", UserRole.USER);
-    await this.createDummyUser("admin@lab3.com", "AdminUser", "adminpassword", UserRole.ADMIN);
+    await this.findOrCreateAdmin("admin@lab3.com", "adminpassword");
   }
 
-  private async createDummyUser(email: string, username: string, password: string, role: UserRole) {
-    const passwordHash = await bcrypt.hash(password, 10);
-    this.users.push({ _id: (this.nextId++).toString(), email, username, passwordHash, role });
-    console.log(`[UsersService] Test user created: ${username}`);
+  private async findOrCreateAdmin(email: string, password: string): Promise<void> {
+    const existingAdmin = await this.userModel.findOne({ email }).exec();
+
+    if (existingAdmin) {
+      if (existingAdmin.role !== UserRole.ADMIN) {
+        existingAdmin.role = UserRole.ADMIN;
+        await existingAdmin.save();
+      }
+      return;
+    }
+
+    const passwordHash = await this.hashingService.hashPassword(password);
+
+    const newAdmin = new this.userModel({
+      email: email,
+      username: "AdminUser",
+      passwordHash: passwordHash,
+      role: UserRole.ADMIN,
+    });
+
+    await newAdmin.save();
   }
 
-  async create(dto: CreateUserDto, passwordHash: string): Promise<User> {
-    await Promise.resolve();
-    const newUser: User = {
-      _id: (this.nextId++).toString(),
+  async create(dto: CreateUserDto, passwordHash: string): Promise<UserDocument> {
+    const newUser = new this.userModel({
       email: dto.email,
       username: dto.username,
       passwordHash: passwordHash,
       role: UserRole.USER,
-    };
-    this.users.push(newUser);
-    return newUser;
+    });
+    return newUser.save();
   }
 
-  async findOneByEmail(email: string): Promise<User | undefined> {
-    await Promise.resolve();
-    return this.users.find((user) => user.email === email);
+  async update(id: string, updateData: Partial<User>): Promise<UserDocument> {
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
+      .exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException("User not found");
+    }
+    return updatedUser;
   }
 
-  async findOneById(id: string): Promise<User | undefined> {
-    await Promise.resolve();
-    return this.users.find((user) => user._id === id);
+  async remove(id: string): Promise<void> {
+    const result = await this.userModel.deleteOne({ _id: id }).exec();
+
+    if (result.deletedCount === 0) {
+      throw new NotFoundException("User not found");
+    }
+  }
+
+  async changePassword(id: string, newPassword: string): Promise<void> {
+    const user = await this.findOneById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    const newPasswordHash = await this.hashingService.hashPassword(newPassword);
+    user.passwordHash = newPasswordHash;
+    await user.save();
+  }
+
+  async findOneByEmail(email: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ email }).exec();
+  }
+
+  async findOneById(id: string): Promise<UserDocument | null> {
+    return this.userModel.findById(id).exec();
   }
 }

@@ -1,10 +1,11 @@
-import { Controller, Get, UseGuards, Param, Delete, Put, Body } from "@nestjs/common";
-import { UserRole } from "src/users/user.service";
+import { Controller, Get, UseGuards, Param, Delete } from "@nestjs/common";
+import { UserRole } from "src/users/enums/user-role.enum";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { AdminUsersService } from "./users.service";
-import { UserResponseDto } from "src/users/dto/user.dto";
+import { ApiSecurity } from "@nestjs/swagger";
 
+@ApiSecurity("bearer")
 @Controller("admin/users")
 @UseGuards(JwtAuthGuard)
 export class AdminUsersController {
@@ -20,12 +21,6 @@ export class AdminUsersController {
   @Get(":id")
   async findOne(@Param("id") id: string) {
     return this.adminUsersService.findOneById(id);
-  }
-
-  @UseGuards(RolesGuard(UserRole.ADMIN))
-  @Put(":id")
-  async updateUser(@Param("id") id: string, @Body() updateUserDto: Partial<UserResponseDto>) {
-    return this.adminUsersService.update(id, updateUserDto);
   }
 
   @UseGuards(RolesGuard(UserRole.ADMIN))

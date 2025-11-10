@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config"; // Імпорт
+import { ConfigModule, ConfigService } from "@nestjs/config"; // Імпорт
 import { CacheModule } from "@nestjs/cache-manager"; // Імпорт
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -8,7 +8,8 @@ import { UsersModule } from "./users/users.module";
 import { MoviesModule } from "./movies/movies.module"; // Імпорт нашого модуля
 import { AdminModule } from "./admin/admin.module";
 import { ListsModule } from "./lists/lists.module";
-import { ForumsModule } from "./fotums/forums.module";
+import { ForumsModule } from "./forums/forums.module";
+import { MongooseModule } from "@nestjs/mongoose";
 
 @Module({
   imports: [
@@ -21,6 +22,14 @@ import { ForumsModule } from "./fotums/forums.module";
     CacheModule.register({
       isGlobal: true,
       ttl: 3600, // Час життя кешу в секундах (1 година)
+    }),
+    // Підключення до MongoDB
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>("MONGO_URI"),
+      }),
+      inject: [ConfigService],
     }),
     // Наші модулі
     AuthModule,

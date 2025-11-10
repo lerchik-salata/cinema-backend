@@ -43,6 +43,10 @@ export class ForumsService {
     return newPost;
   }
 
+  getAllPosts(): Post[] {
+    return this.posts;
+  }
+
   getPostsByMovie(movieId: string): Post[] {
     const thread = this.threads.find((t) => t.movieId === movieId);
 
@@ -51,5 +55,28 @@ export class ForumsService {
     }
 
     return this.posts.filter((p) => p.threadId === thread.id);
+  }
+
+  updatePost(postId: number, content: string): Post {
+    const post = this.posts.find((p) => p.id === postId);
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    post.content = content;
+    (post as { updatedAt?: Date }).updatedAt = new Date();
+
+    return post;
+  }
+
+  deletePost(postId: number): void {
+    const initialLength = this.posts.length;
+
+    this.posts = this.posts.filter((p) => p.id !== postId);
+
+    if (this.posts.length === initialLength) {
+      throw new Error("Post not found");
+    }
   }
 }

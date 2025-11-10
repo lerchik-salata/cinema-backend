@@ -5,5 +5,6 @@ import { ForumsService } from "./forums.service";
 @Module({
   controllers: [ForumsController],
   providers: [ForumsService],
+  exports: [ForumsService],
 })
 export class ForumsModule {}
