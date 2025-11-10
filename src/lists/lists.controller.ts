@@ -16,21 +16,21 @@ export class ListsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  addToList(@Body() addToListDto: AddToListDto, @Req() req: RequestWithUser) {
+  async addToList(@Body() addToListDto: AddToListDto, @Req() req: RequestWithUser) {
     const userId = req.user.userId;
 
-    return this.listsService.addToList(userId, addToListDto);
+    return await this.listsService.addToList(userId, addToListDto);
   }
   @UseGuards(JwtAuthGuard)
   @Get("my")
-  getMyLists(@Req() req: RequestWithUser) {
+  async getMyLists(@Req() req: RequestWithUser) {
     const userId = req.user.userId;
-    return this.listsService.getMyLists(userId);
+    return await this.listsService.getMyLists(userId);
   }
   @UseGuards(JwtAuthGuard)
   @Delete(":movieId")
-  removeFromList(@Param("movieId") movieId: string, @Req() req: RequestWithUser) {
+  async removeFromList(@Param("movieId") movieId: string, @Req() req: RequestWithUser) {
     const userId = req.user.userId;
-    return this.listsService.removeFromList(userId, movieId);
+    return await this.listsService.removeFromList(userId, movieId);
   }
 }
