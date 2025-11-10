@@ -59,6 +59,17 @@ export class ForumsService {
     return updatedPost;
   }
 
+  async updatePostAsAdmin(postId: string, content: string): Promise<Post> {
+    const updatedPost = await this.postModel
+      .findByIdAndUpdate(postId, { content: content }, { new: true })
+      .exec();
+
+    if (!updatedPost) {
+      throw new NotFoundException("Post not found");
+    }
+    return updatedPost;
+  }
+
   async deletePost(postId: string, authorId: string): Promise<void> {
     const result = await this.postModel
       .findOneAndDelete({
@@ -69,6 +80,14 @@ export class ForumsService {
 
     if (!result) {
       throw new NotFoundException("Post not found or you do not have permission to delete it");
+    }
+  }
+
+  async deletePostAsAdmin(postId: string): Promise<void> {
+    const result = await this.postModel.findByIdAndDelete(postId).exec();
+
+    if (!result) {
+      throw new NotFoundException("Post not found");
     }
   }
 }
