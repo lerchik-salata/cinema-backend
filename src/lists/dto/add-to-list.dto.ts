@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsNotEmpty, IsEnum } from "class-validator";
 
 export enum ListType {
@@ -7,10 +8,17 @@ export enum ListType {
 }
 
 export class AddToListDto {
+  @ApiProperty({ description: "123456" })
   @IsString()
   @IsNotEmpty()
   movieId: string;
 
+  @ApiProperty({
+    enum: ListType,
+    enumName: "ListType",
+    description: "Type of the list (wantToWatch, watched, favorite)",
+    example: ListType.WANT_TO_WATCH,
+  })
   @IsEnum(ListType)
   @IsNotEmpty()
   listType: ListType;

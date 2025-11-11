@@ -3,6 +3,7 @@ import { ListsService } from "./lists.service";
 import { AddToListDto } from "./dto/add-to-list.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { Request } from "express";
+import { ApiSecurity } from "@nestjs/swagger";
 
 interface RequestWithUser extends Request {
   user: {
@@ -10,6 +11,7 @@ interface RequestWithUser extends Request {
   };
 }
 
+@ApiSecurity("bearer")
 @Controller("lists")
 export class ListsController {
   constructor(private readonly listsService: ListsService) {}

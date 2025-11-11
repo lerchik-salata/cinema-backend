@@ -5,6 +5,7 @@ import { CreatePostDto } from "./dto/create-post.dto";
 import { UpdatePostDto } from "./dto/update-post.dto";
 import { Request } from "express";
 import { Post as PostInterface } from "./schemas/post.schema";
+import { ApiSecurity } from "@nestjs/swagger";
 
 interface RequestWithUser extends Request {
   user: {
@@ -12,6 +13,7 @@ interface RequestWithUser extends Request {
   };
 }
 
+@ApiSecurity("bearer")
 @Controller("forums")
 @UseGuards(JwtAuthGuard)
 export class ForumsController {

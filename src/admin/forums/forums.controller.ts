@@ -1,4 +1,4 @@
-import { Controller, UseGuards, Get, Delete, Put, Param, Body, ParseIntPipe } from "@nestjs/common";
+import { Controller, UseGuards, Get, Delete, Patch, Param, Body } from "@nestjs/common";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { RolesGuard } from "src/auth/guards/roles.guard";
 import { UserRole } from "src/users/enums/user-role.enum";
@@ -19,14 +19,14 @@ export class AdminForumsController {
   }
 
   @UseGuards(RolesGuard(UserRole.ADMIN))
-  @Put("posts/:id")
-  updatePost(@Param("id", ParseIntPipe) postId: string, @Body() updatePostDto: UpdatePostDto) {
+  @Patch("posts/:id")
+  updatePost(@Param("id") postId: string, @Body() updatePostDto: UpdatePostDto) {
     return this.adminForumsService.updatePost(postId, updatePostDto);
   }
 
   @UseGuards(RolesGuard(UserRole.ADMIN))
   @Delete("posts/:id")
-  deletePost(@Param("id", ParseIntPipe) postId: string) {
+  deletePost(@Param("id") postId: string) {
     return this.adminForumsService.deletePost(postId);
   }
 }
