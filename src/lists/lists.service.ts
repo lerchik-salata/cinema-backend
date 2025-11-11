@@ -1,54 +1,45 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { AddToListDto } from "./dto/add-to-list.dto";
-
-export interface ListItem {
-  id: number;
-  userId: string;
-  movieId: string;
-  listType: string;
-}
+import { InjectModel } from "@nestjs/mongoose"; // 1. Імпорт
+import { Model } from "mongoose";
+import { ListItem, ListItemDocument } from "./schemas/list-item.schema"; // 2. Імпорт схеми
 
 @Injectable()
 export class ListsService {
-  private userLists: ListItem[] = [];
-  private nextId = 1;
+  constructor(
+    @InjectModel(ListItem.name)
+    private listItemModel: Model<ListItemDocument>,
+  ) {}
+  async addToList(userId: string, dto: AddToListDto): Promise<ListItem> {
+    const updatedItem = await this.listItemModel
+      .findOneAndUpdate(
+        { userId: userId, movieId: dto.movieId },
+        { listType: dto.listType },
+        {
+          new: true,
+          upsert: true,
+        },
+      )
+      .exec();
 
-  addToList(userId: string, dto: AddToListDto) {
-    const existingItem = this.userLists.find(
-      (item) => item.userId === userId && item.movieId === dto.movieId,
-    );
-
-    if (existingItem) {
-      existingItem.listType = dto.listType;
-      return existingItem;
-    }
-
-    const newItem: ListItem = {
-      id: this.nextId++,
-      userId: userId,
-      movieId: dto.movieId,
-      listType: dto.listType,
-    };
-    this.userLists.push(newItem);
-
-    // console.log(this.userLists);
-    return newItem;
+    return updatedItem;
+  }
+  async getMyLists(userId: string): Promise<ListItem[]> {
+    return this.listItemModel.find({ userId: userId }).exec();
   }
 
-  getMyLists(userId: string) {
-    return this.userLists.filter((item) => item.userId === userId);
-  }
+  async removeFromList(userId: string, movieId: string): Promise<{ message: string }> {
+    const result = await this.listItemModel
+      .findOneAndDelete({
+        userId: userId,
+        movieId: movieId,
+      })
+      .exec();
 
-  removeFromList(userId: string, movieId: string) {
-    const itemIndex = this.userLists.findIndex(
-      (item) => item.userId === userId && item.movieId === movieId,
-    );
-
-    if (itemIndex === -1) {
+    if (!result) {
       throw new NotFoundException("List item not found");
     }
 
-    this.userLists.splice(itemIndex, 1);
     return { message: "Item removed" };
   }
 }

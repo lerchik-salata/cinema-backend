@@ -1,82 +1,93 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model, Types } from "mongoose";
 import { CreatePostDto } from "./dto/create-post.dto";
-import { ForumThread } from "./interfaces/forum-thread.interface";
-import { Post } from "./interfaces/post.interface";
+import { ForumThread, ForumThreadDocument } from "./schemas/forum-thread.schema";
+import { Post, PostDocument } from "./schemas/post.schema";
 
 @Injectable()
 export class ForumsService {
-  // імітатори БД
-  private threads: ForumThread[] = [];
-  private posts: Post[] = [];
+  constructor(
+    @InjectModel(ForumThread.name)
+    private threadModel: Model<ForumThreadDocument>,
+    @InjectModel(Post.name)
+    private postModel: Model<PostDocument>,
+  ) {}
 
-  private nextThreadId = 1;
-  private nextPostId = 1;
-
-  private findOrCreateThread(movieId: string): ForumThread {
-    let thread = this.threads.find((t) => t.movieId === movieId);
+  private async findOrCreateThread(movieId: string): Promise<ForumThreadDocument> {
+    let thread = await this.threadModel.findOne({ movieId }).exec();
 
     if (!thread) {
-      thread = {
-        id: this.nextThreadId++,
-        movieId: movieId,
-        createdAt: new Date(),
-      };
-      this.threads.push(thread);
+      thread = await this.threadModel.create({ movieId });
     }
     return thread;
   }
-
-  createPost(authorId: string, movieId: string, dto: CreatePostDto): Post {
-    const thread = this.findOrCreateThread(movieId);
-
-    const newPost: Post = {
-      id: this.nextPostId++,
-      threadId: thread.id,
+  async createPost(authorId: string, movieId: string, dto: CreatePostDto): Promise<Post> {
+    const thread = await this.findOrCreateThread(movieId);
+    const newPost = await this.postModel.create({
       authorId: authorId,
+      threadId: thread._id,
       content: dto.content,
-      parentPostId: dto.parentPostId || null,
-      createdAt: new Date(),
-    };
+      parentPostId: dto.parentPostId ? new Types.ObjectId(dto.parentPostId) : null,
+    });
 
-    //збереження в імітатцію БД
-    this.posts.push(newPost);
     return newPost;
   }
 
-  getAllPosts(): Post[] {
-    return this.posts;
+  async getAllPosts(): Promise<Post[]> {
+    return this.postModel.find().exec();
   }
-
-  getPostsByMovie(movieId: string): Post[] {
-    const thread = this.threads.find((t) => t.movieId === movieId);
-
+  //пошук постів за фільмом
+  async getPostsByMovie(movieId: string): Promise<Post[]> {
+    const thread = await this.threadModel.findOne({ movieId }).exec();
     if (!thread) {
       return [];
     }
-
-    return this.posts.filter((p) => p.threadId === thread.id);
+    return this.postModel
+      .find({ threadId: thread._id })
+      .sort({ createdAt: 1 }) // Сортування за датою
+      .exec();
   }
 
-  updatePost(postId: number, content: string): Post {
-    const post = this.posts.find((p) => p.id === postId);
-
-    if (!post) {
-      throw new Error("Post not found");
+  async updatePost(postId: string, content: string, authorId: string): Promise<Post> {
+    const updatedPost = await this.postModel
+      .findOneAndUpdate({ _id: postId, authorId: authorId }, { content: content }, { new: true })
+      .exec();
+    if (!updatedPost) {
+      throw new NotFoundException("Post not found or you do not have permission to edit it");
     }
-
-    post.content = content;
-    (post as { updatedAt?: Date }).updatedAt = new Date();
-
-    return post;
+    return updatedPost;
   }
 
-  deletePost(postId: number): void {
-    const initialLength = this.posts.length;
+  async updatePostAsAdmin(postId: string, content: string): Promise<Post> {
+    const updatedPost = await this.postModel
+      .findByIdAndUpdate(postId, { content: content }, { new: true })
+      .exec();
 
-    this.posts = this.posts.filter((p) => p.id !== postId);
+    if (!updatedPost) {
+      throw new NotFoundException("Post not found");
+    }
+    return updatedPost;
+  }
 
-    if (this.posts.length === initialLength) {
-      throw new Error("Post not found");
+  async deletePost(postId: string, authorId: string): Promise<void> {
+    const result = await this.postModel
+      .findOneAndDelete({
+        _id: postId,
+        authorId: authorId,
+      })
+      .exec();
+
+    if (!result) {
+      throw new NotFoundException("Post not found or you do not have permission to delete it");
+    }
+  }
+
+  async deletePostAsAdmin(postId: string): Promise<void> {
+    const result = await this.postModel.findByIdAndDelete(postId).exec();
+
+    if (!result) {
+      throw new NotFoundException("Post not found");
     }
   }
 }

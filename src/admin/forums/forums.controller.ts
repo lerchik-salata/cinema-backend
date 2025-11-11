@@ -20,13 +20,13 @@ export class AdminForumsController {
 
   @UseGuards(RolesGuard(UserRole.ADMIN))
   @Put("posts/:id")
-  updatePost(@Param("id", ParseIntPipe) postId: number, @Body() updatePostDto: UpdatePostDto) {
+  updatePost(@Param("id", ParseIntPipe) postId: string, @Body() updatePostDto: UpdatePostDto) {
     return this.adminForumsService.updatePost(postId, updatePostDto);
   }
 
   @UseGuards(RolesGuard(UserRole.ADMIN))
   @Delete("posts/:id")
-  deletePost(@Param("id", ParseIntPipe) postId: number) {
+  deletePost(@Param("id", ParseIntPipe) postId: string) {
     return this.adminForumsService.deletePost(postId);
   }
 }
