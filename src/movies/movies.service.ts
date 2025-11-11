@@ -3,6 +3,9 @@ import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { firstValueFrom } from "rxjs";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { Movie, MovieDocument } from "./schemas/movie.schema";
 
 export interface TmdbMovieDto {
   id: number;
@@ -66,11 +69,34 @@ export class MoviesService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    // Впровадження (Inject) Mongoose Моделі
+    @InjectModel(Movie.name) private movieModel: Model<MovieDocument>,
   ) {
     // Дістаємо API ключі
     this.tmdbApiKey = this.configService.get<string>("TMDB_API_KEY")!;
     // '!', бо ми впевнені, що ключ є та не може бути undefined, а так помилка, бо тип може бути string | undefined
     this.omdbApiKey = this.configService.get<string>("OMDB_API_KEY")!;
+  }
+
+  // Нова приватна функція для збереження/оновлення фільму в БД
+  private async upsertMovie(movieData: CombinedMovieData): Promise<MovieDocument> {
+    const movie = await this.movieModel.findOneAndUpdate(
+      { movieId: movieData.id.toString() }, // Шукаємо за TMDB ID
+      {
+        // Дані для оновлення або створення
+        $set: {
+          movieId: movieData.id.toString(),
+          title: movieData.title,
+          tmdbRating: movieData.vote_average_tmdb,
+        },
+        // $inc: { popularityScore: 1 } // це вже для рекомендацій (лаба 5)
+      },
+      {
+        upsert: true, // створити, якщо не знайдено
+        new: true, // повернути оновлений документ
+      },
+    );
+    return movie;
   }
 
   // Деталі про фільм
@@ -112,6 +138,11 @@ export class MoviesService {
       awards: omdbData.Awards,
       ratings_omdb: omdbData.Ratings,
     };
+
+    // Додав цей рядок перед поверненням
+    // Ми не чекаємо (await) відповіді, щоб не сповільнювати юзера
+    // Нехай воно зберігається у фоні
+    this.upsertMovie(combinedData).catch((err) => console.error("Failed to upsert movie", err));
 
     await this.cacheManager.set(cacheKey, combinedData);
     return combinedData;
