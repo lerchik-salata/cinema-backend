@@ -1,17 +1,17 @@
-version: '3.8'
+
 
 services:
   mongo:
-    image: mongo:6.0 
+    image: mongo:6.0
     container_name: movie-aggregator-mongo
     restart: always
     ports:
-      - '27017:27017' 
+      - '27017:27017'
     volumes:
       - mongo-data:/data/db
     environment:
-      MONGO_INITDB_DATABASE: movie-aggregator-db 
-  
+      MONGO_INITDB_DATABASE: movie-aggregator-db
+
   app:
     build:
       context: .
@@ -19,7 +19,7 @@ services:
     container_name: nest-backend-app
     restart: always
     ports:
-      - '3000:3000' 
+      - '3000:3000'
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
@@ -30,7 +30,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       BCRYPT_SALT_ROUNDS: ${BCRYPT_SALT_ROUNDS}
       NODE_ENV: development
-    command: npm run start:dev 
+    command: npm run start:dev
 
 volumes:
-  mongo-data: 
+  mongo-data:
