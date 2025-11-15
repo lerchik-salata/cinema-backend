@@ -2,12 +2,13 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { ForumsService } from "src/forums/forums.service";
 import { UpdatePostDto } from "src/forums/dto/update-post.dto";
 import { Post } from "src/forums/schemas/post.schema";
+import { PostResponseDto } from "src/forums/dto/post-response.dto";
 
 @Injectable()
 export class AdminForumsService {
   constructor(private forumsService: ForumsService) {}
 
-  async getAllPosts(): Promise<Post[]> {
+  async getAllPosts(): Promise<PostResponseDto[]> {
     return await this.forumsService.getAllPosts();
   }
 
