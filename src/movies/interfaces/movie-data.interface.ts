@@ -1,5 +1,3 @@
-// Перемісти СЮДИ всі інтерфейси з movies.service.ts
-
 export interface TmdbMovieDto {
   id: number;
   imdb_id: string;

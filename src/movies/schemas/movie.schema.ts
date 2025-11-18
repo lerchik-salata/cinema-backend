@@ -3,10 +3,10 @@ import { HydratedDocument } from "mongoose";
 
 export type MovieDocument = HydratedDocument<Movie>;
 
-@Schema({ timestamps: true }) // timestamps додасть createdAt і updatedAt
+@Schema({ timestamps: true }) // createdAt і updatedAt
 export class Movie {
   @Prop({ required: true, unique: true, type: String })
-  movieId: string; // Це буде TMDB ID (наприклад, '438631')
+  movieId: string; // TMDB ID
 
   @Prop({ required: true })
   title: string;

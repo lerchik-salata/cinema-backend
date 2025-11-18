@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "This config uses Jest to run tests",
+  "packageManager": "npm",
+  "reporters": ["html", "clear-text", "progress"],
+  "testRunner": "jest",
+  "testRunner_comment": "We use the jest test runner.",
+  "coverageAnalysis": "perTest",
+  "jest": {
+    "projectType": "custom",
+    "configFile": "package.json",
+    "enableFindRelatedTests": true
+  },
+  "mutate": [
+    "src/movies/movies.service.ts",
+    "src/movies/external-api.service.ts",
+    "!src/**/*.spec.ts"
+  ],
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.json"
+}
