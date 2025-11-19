@@ -56,7 +56,7 @@ export class ExternalApiService {
         console.error("OMDB fetch error, returning fallback. Unknown error:", e);
       }
 
-      // Якщо OMDB не спрацював, ми повертаємо заглушку, щоб не зламати нам сайт нафіг
+      // Якщо OMDB не спрацював, ми повертаємо заглушку, щоб не зламати нам сайт
       return { Rated: "N/A", Awards: "N/A", Ratings: [] };
     }
   }
