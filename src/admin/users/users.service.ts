@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { UsersService } from "src/users/user.service";
+import { UsersService } from "../../users/user.service";
 import { plainToInstance } from "class-transformer";
-import { UserResponseDto } from "src/users/dto/user.dto";
-import { User, UserDocument } from "src/users/schemas/user.schema";
+import { UserResponseDto } from "../../users/dto/user.dto";
+import { User, UserDocument } from "../../users/schemas/user.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 

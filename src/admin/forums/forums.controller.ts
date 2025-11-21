@@ -1,8 +1,8 @@
 import { Controller, UseGuards, Get, Delete, Patch, Param, Body } from "@nestjs/common";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
-import { RolesGuard } from "src/auth/guards/roles.guard";
-import { UserRole } from "src/users/enums/user-role.enum";
-import { UpdatePostDto } from "src/forums/dto/update-post.dto";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../auth/guards/roles.guard";
+import { UserRole } from "../../users/enums/user-role.enum";
+import { UpdatePostDto } from "../../forums/dto/update-post.dto";
 import { AdminForumsService } from "./forums.service";
 import { ApiSecurity } from "@nestjs/swagger";
 
