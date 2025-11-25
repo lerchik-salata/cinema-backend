@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards, Param, Delete } from "@nestjs/common";
-import { UserRole } from "src/users/enums/user-role.enum";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
-import { RolesGuard } from "src/auth/guards/roles.guard";
+import { UserRole } from "../../users/enums/user-role.enum";
+import { JwtAuthGuard } from "../../auth/guards/jwt-auth.guard";
+import { RolesGuard } from "../../auth/guards/roles.guard";
 import { AdminUsersService } from "./users.service";
 import { ApiSecurity } from "@nestjs/swagger";
 

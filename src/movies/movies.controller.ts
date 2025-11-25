@@ -1,38 +1,39 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
+import { Controller, Get, Param, Query, ValidationPipe } from "@nestjs/common";
 import { MoviesService } from "./movies.service";
-import { CombinedMovieData, TmdbSearchResultDto, TmdbVideoDto } from "./movies.service";
+import {
+  CombinedMovieData,
+  TmdbSearchResultDto,
+  TmdbVideoDto,
+} from "./interfaces/movie-data.interface";
+import { FilterMoviesDto } from "./dto/filter-movies.dto";
+import { SearchMovieDto } from "./dto/search-movie.dto";
 
-@Controller("movies") // Всі запити будуть /movies/...
+@Controller("movies")
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
-  // Фільтри (має бути ПЕРЕД :id, щоб :id не перехопив 'search')
-  // GET /movies?genre=...&year=...
   @Get()
-  getFilteredMovies(@Query("genre") genre?: string, @Query("year") year?: string) {
-    // Якщо параметрів немає, можна повертати популяр
-    if (!genre && !year) {
+  // Використовуємо DTO для фільтрів
+  getFilteredMovies(@Query(new ValidationPipe({ transform: true })) dto: FilterMoviesDto) {
+    if (!dto.genre && !dto.year) {
       // додати логіку популярних фільмів
     }
-    return this.moviesService.getFilteredMovies(genre, year);
+    return this.moviesService.getFilteredMovies(dto.genre, dto.year);
   }
 
-  // Пошук
-  // GET /movies/search?query=...
   @Get("search")
-  searchMovies(@Query("query") query: string): Promise<TmdbSearchResultDto[]> {
-    return this.moviesService.searchMovies(query);
+  // Використовуємо DTO для пошуку
+  searchMovies(
+    @Query(new ValidationPipe({ transform: true })) dto: SearchMovieDto,
+  ): Promise<TmdbSearchResultDto[]> {
+    return this.moviesService.searchMovies(dto.query);
   }
 
-  // Деталі про фільм
-  // GET /movies/123
   @Get(":id")
   getMovieById(@Param("id") id: string): Promise<CombinedMovieData> {
     return this.moviesService.getMovieById(id);
   }
 
-  // Трейлери
-  // GET /movies/123/trailers
   @Get(":id/trailers")
   getTrailers(@Param("id") id: string): Promise<TmdbVideoDto[]> {
     return this.moviesService.getTrailers(id);

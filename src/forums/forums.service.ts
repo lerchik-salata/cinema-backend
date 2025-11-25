@@ -2,8 +2,10 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model, Types } from "mongoose";
 import { CreatePostDto } from "./dto/create-post.dto";
+import { PostResponseDto } from "./dto/post-response.dto";
 import { ForumThread, ForumThreadDocument } from "./schemas/forum-thread.schema";
 import { Post, PostDocument } from "./schemas/post.schema";
+import { plainToInstance } from "class-transformer";
 
 @Injectable()
 export class ForumsService {
@@ -34,9 +36,14 @@ export class ForumsService {
     return newPost;
   }
 
-  async getAllPosts(): Promise<Post[]> {
-    return this.postModel.find().exec();
+  async getAllPosts(): Promise<PostResponseDto[]> {
+    const allPosts = await this.postModel.find().exec();
+
+    return plainToInstance(PostResponseDto, allPosts, {
+      excludeExtraneousValues: true,
+    });
   }
+
   //пошук постів за фільмом
   async getPostsByMovie(movieId: string): Promise<Post[]> {
     const thread = await this.threadModel.findOne({ movieId }).exec();

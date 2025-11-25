@@ -1,10 +1,10 @@
 import { Injectable, ConflictException, UnauthorizedException } from "@nestjs/common";
-import { UsersService } from "src/users/user.service";
+import { UsersService } from "../users/user.service";
 import { HashingService } from "./hashing/hashing.service";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { UserResponseDto } from "src/users/dto/user.dto";
+import { UserResponseDto } from "../users/dto/user.dto";
 import { plainToInstance } from "class-transformer";
 
 @Injectable()

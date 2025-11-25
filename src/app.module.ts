@@ -37,6 +37,7 @@ import { MongooseModule } from "@nestjs/mongoose";
     MoviesModule,
     AdminModule,
     ListsModule,
+    AdminModule,
     ForumsModule, // Додаємо наш модуль
   ],
   controllers: [AppController],
