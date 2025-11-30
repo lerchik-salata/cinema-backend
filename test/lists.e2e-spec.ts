@@ -1,8 +1,11 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, HttpStatus } from "@nestjs/common";
 import request from "supertest";
 import { AppModule } from "./../src/app.module";
 import { Server } from "http";
+import { UsersService } from "../src/users/user.service";
+import { HashingService } from "../src/auth/hashing/hashing.service";
+import { UserRole } from "../src/users/enums/user-role.enum";
 
 interface LoginResponse {
   access_token: string;
@@ -10,14 +13,24 @@ interface LoginResponse {
 
 interface List {
   _id: string;
-  title: string;
-  description?: string;
+  movieId: string;
+  listType: string;
 }
 
 describe("Lists System (e2e)", () => {
   let app: INestApplication;
   let accessToken: string;
-  let createdListId: string;
+  let usersService: UsersService;
+  let hashingService: HashingService;
+
+  const testUser = {
+    username: "john",
+    email: "john@test.com",
+    password: "changeme",
+    role: UserRole.USER,
+  };
+
+  const movieId = "123";
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -26,6 +39,18 @@ describe("Lists System (e2e)", () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    usersService = moduleFixture.get<UsersService>(UsersService);
+    hashingService = moduleFixture.get<HashingService>(HashingService);
+
+    const existingUser = await usersService.findOneByEmail(testUser.email);
+    if (!existingUser) {
+      const passwordHash = await hashingService.hashPassword(testUser.password);
+      await usersService.create(
+        { email: testUser.email, username: testUser.username, password: testUser.password },
+        passwordHash,
+      );
+    }
   });
 
   afterAll(async () => {
@@ -35,8 +60,8 @@ describe("Lists System (e2e)", () => {
   it("/auth/login (POST)", async () => {
     const response = await request(app.getHttpServer() as Server)
       .post("/auth/login")
-      .send({ username: "john", password: "changeme" })
-      .expect(201);
+      .send({ email: "john@test.com", password: "changeme" })
+      .expect(HttpStatus.OK);
 
     const body = response.body as LoginResponse;
     accessToken = body.access_token;
@@ -48,19 +73,18 @@ describe("Lists System (e2e)", () => {
     const response = await request(app.getHttpServer() as Server)
       .post("/lists")
       .set("Authorization", `Bearer ${accessToken}`)
-      .send({ title: "My New List", description: "Test description" })
-      .expect(201);
+      .send({ movieId: movieId, listType: "watched" })
+      .expect(HttpStatus.CREATED);
 
     const body = response.body as List;
-    createdListId = body._id;
-    expect(body.title).toBe("My New List");
+    expect(body.listType).toBe("watched");
   });
 
-  it("/lists (GET)", async () => {
+  it("/lists/my (GET)", async () => {
     const response = await request(app.getHttpServer() as Server)
-      .get("/lists")
+      .get("/lists/my")
       .set("Authorization", `Bearer ${accessToken}`)
-      .expect(200);
+      .expect(HttpStatus.OK);
 
     const body = response.body as List[];
 
@@ -69,11 +93,9 @@ describe("Lists System (e2e)", () => {
   });
 
   it("/lists/:id (DELETE)", async () => {
-    if (createdListId) {
-      await request(app.getHttpServer() as Server)
-        .delete(`/lists/${createdListId}`)
-        .set("Authorization", `Bearer ${accessToken}`)
-        .expect(200);
-    }
+    await request(app.getHttpServer() as Server)
+      .delete(`/lists/${movieId}`)
+      .set("Authorization", `Bearer ${accessToken}`)
+      .expect(HttpStatus.OK);
   });
 });
