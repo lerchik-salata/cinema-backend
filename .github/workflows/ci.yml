@@ -37,9 +37,6 @@ jobs:
 
       - name: Set MongoDB URI
         run: echo "MONGO_URI=mongodb://localhost:27017/ci_test_db" >> $GITHUB_ENV
-
-      - name: Check env
-        run: echo $JWT_SECRET
         
       - name: Run Lint and Format checks
         run: npm run format:check && npm run lint:check

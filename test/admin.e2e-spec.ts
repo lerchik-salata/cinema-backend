@@ -3,8 +3,6 @@ import { INestApplication, ValidationPipe, HttpStatus } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "../src/app.module";
 import { UsersService } from "../src/users/user.service";
-import { UserRole } from "../src/users/enums/user-role.enum";
-import { UserDocument } from "../src/users/schemas/user.schema";
 
 interface AuthResponse {
   access_token: string;
@@ -73,6 +71,11 @@ describe("AdminModule (E2E API)", () => {
     userId = userBody.user.id;
     userToken = userBody.access_token;
 
+    const adminUserToUpdate = await usersService.findOneByEmail(adminTestEmail);
+    if (!adminUserToUpdate) {
+      await usersService.findOrCreateAdmin(adminTestEmail, adminTestPassword);
+    }
+
     const loginAdminRes: Response = await server
       .post("/auth/login")
       .send({
@@ -83,13 +86,6 @@ describe("AdminModule (E2E API)", () => {
 
     const loginAdminBody = loginAdminRes.body as AuthResponse;
     adminToken = loginAdminBody.access_token;
-
-    const adminUserToUpdate = await usersService.findOneByEmail(adminTestEmail);
-    const adminUserToUpdateDoc = adminUserToUpdate as UserDocument;
-    if (adminUserToUpdate && adminUserToUpdate.role !== UserRole.ADMIN) {
-      adminUserToUpdateDoc.role = UserRole.ADMIN;
-      await adminUserToUpdateDoc.save();
-    }
 
     const postRes: Response = await server
       .post(`/forums/${testMovieId}/posts`)
