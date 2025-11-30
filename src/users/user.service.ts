@@ -14,7 +14,9 @@ export class UsersService {
   ) {}
 
   async onModuleInit() {
-    await this.findOrCreateAdmin("admin@lab3.com", "adminpassword");
+    if (process.env.NODE_ENV !== "test") {
+      await this.findOrCreateAdmin("admin@lab3.com", "adminpassword");
+    }
   }
 
   private async findOrCreateAdmin(email: string, password: string): Promise<void> {
