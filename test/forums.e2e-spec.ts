@@ -25,8 +25,8 @@ describe("Forum System (e2e)", () => {
   let hashingService: HashingService;
 
   const testUser = {
-    username: "john",
-    email: "john@test.com",
+    username: "jack",
+    email: "jack@test.com",
     password: "changeme",
     role: UserRole.USER,
   };
@@ -61,7 +61,7 @@ describe("Forum System (e2e)", () => {
   it("/auth/login (POST)", async () => {
     const response = await request(app.getHttpServer() as Server)
       .post("/auth/login")
-      .send({ email: "john@test.com", password: "changeme" })
+      .send({ email: "jack@test.com", password: "changeme" })
       .expect(HttpStatus.OK);
 
     const body = response.body as LoginResponse;
