@@ -13,13 +13,7 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
-  async onModuleInit() {
-    if (process.env.NODE_ENV !== "test") {
-      await this.findOrCreateAdmin("admin@lab3.com", "adminpassword");
-    }
-  }
-
-  private async findOrCreateAdmin(email: string, password: string): Promise<void> {
+  async findOrCreateAdmin(email: string, password: string): Promise<void> {
     const existingAdmin = await this.userModel.findOne({ email }).exec();
 
     if (existingAdmin) {
