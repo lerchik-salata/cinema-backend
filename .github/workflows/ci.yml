@@ -9,6 +9,13 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
+    env:
+      JWT_SECRET: ${{ secrets.CI_JWT_SECRET }} 
+      BCRYPT_SALT_ROUNDS: ${{ secrets.CI_BCRYPT_SALT_ROUNDS }} 
+
+      TMDB_API_KEY: ${{ secrets.CI_TMDB_API_KEY }}
+      OMDB_API_KEY: ${{ secrets.CI_OMDB_API_KEY }}
     
     steps:
       - name: Checkout code
