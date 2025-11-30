@@ -1,0 +1,48 @@
+name: Backend CI Checks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      JWT_SECRET: ${{ secrets.CI_JWT_SECRET }} 
+      BCRYPT_SALT_ROUNDS: ${{ secrets.CI_BCRYPT_SALT_ROUNDS }} 
+
+      TMDB_API_KEY: ${{ secrets.CI_TMDB_API_KEY }}
+      OMDB_API_KEY: ${{ secrets.CI_OMDB_API_KEY }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm install
+
+      - name: Start MongoDB Service
+        uses: supercharge/mongodb-github-action@v1.10.0
+        with:
+          mongodb-version: '6.0'
+
+      - name: Set MongoDB URI
+        run: echo "MONGO_URI=mongodb://localhost:27017/ci_test_db" >> $GITHUB_ENV
+        
+      - name: Run Lint and Format checks
+        run: npm run format:check && npm run lint:check
+
+      - name: Run Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm run test:ci

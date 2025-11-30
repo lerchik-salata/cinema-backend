@@ -1,0 +1,20 @@
+name: Commit Linting / Conventional Commits Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  commit-lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Validate PR title and commits
+        uses: wagoid/commitlint-github-action@v5
+        with:
+          pattern: '^feat|fix|chore|docs|style|refactor|perf|test|build|ci|revert'
