@@ -18,10 +18,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  if (process.env.AUTO_CREATE_ADMIN === "true") {
-    const usersService = app.get(UsersService);
-    await usersService.findOrCreateAdmin("admin@lab3.com", "adminpassword");
-  }
+  const usersService = app.get(UsersService);
+  await usersService.findOrCreateAdmin("admin@lab3.com", "adminpassword");
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
