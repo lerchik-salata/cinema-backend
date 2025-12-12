@@ -1,0 +1,46 @@
+config:
+  target: 'http://localhost:3000' 
+  phases:
+    - duration: 60
+      arrivalRate: 5 
+      rampTo: 30 
+      name: "Ramp up to high load"
+    - duration: 30 
+      arrivalRate: 50 
+      name: "Sustain peak load"
+  
+  payload:
+    path: './test-users.csv'
+    fields:
+      - "email"
+      - "password"
+      - "username" 
+
+scenarios:
+  - name: User Workflow (Login, Search, Create Post)
+    flow:
+      - post:
+          url: "/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+          capture:
+            json: "$.access_token"
+            as: "user_token"
+
+      - get:
+          url: "/movies/search?query=Matrix"
+          headers:
+            Authorization: "Bearer {{ user_token }}"
+            
+      - get:
+          url: "/users/me"
+          headers:
+            Authorization: "Bearer {{ user_token }}"
+            
+      - post:
+          url: "/forums/123/posts"
+          headers:
+            Authorization: "Bearer {{ user_token }}"
+          json:
+            content: "Test post from user {{ username }}"
