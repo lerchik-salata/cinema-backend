@@ -62,7 +62,7 @@ describe("AuthModule (E2E API)", () => {
 
       // Проверяем поля согласно types.ts
       expect(body.accessToken).toBeDefined();
-      expect(typeof body.accessToken).toBe('string');
+      expect(typeof body.accessToken).toBe("string");
 
       expect(body.user).toBeDefined();
       expect(body.user.email).toBe(email);

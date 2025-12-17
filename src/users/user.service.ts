@@ -7,9 +7,7 @@ import { UserRole } from "./enums/user-role.enum";
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async findOrCreateAdmin(email: string, passwordHash: string): Promise<void> {
     const existingAdmin = await this.userModel.findOne({ email }).exec();
