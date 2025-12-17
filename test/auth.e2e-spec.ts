@@ -3,10 +3,11 @@ import { INestApplication, ValidationPipe, HttpStatus } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "../src/app.module";
 
+// Интерфейс ответа соответствует CoreAuthResponse из types.ts
 interface AuthResponse {
-  access_token: string;
+  accessToken: string;
   user: {
-    id: string;
+    _id: string; // Библиотека возвращает _id
     email: string;
     username: string;
   };
@@ -18,7 +19,7 @@ describe("AuthModule (E2E API)", () => {
   let app: INestApplication;
   let server: request.SuperTest<request.Test>;
 
-  const password = `Password123`;
+  const password = "Password123!"; // Пароль посложнее
   const email = `e2e_${unique()}@test.com`;
   const username = `user_${unique()}`;
 
@@ -38,7 +39,7 @@ describe("AuthModule (E2E API)", () => {
     );
 
     await app.init();
-
+    // @ts-ignore
     server = request(app.getHttpServer());
   });
 
@@ -46,8 +47,8 @@ describe("AuthModule (E2E API)", () => {
     await app.close();
   });
 
-  describe("/auth/register (POST)", () => {
-    it("should register a user and return access_token", async () => {
+  describe("POST /auth/register", () => {
+    it("should register a user and return accessToken", async () => {
       const res: Response = await server
         .post("/auth/register")
         .send({
@@ -59,15 +60,21 @@ describe("AuthModule (E2E API)", () => {
 
       const body = res.body as AuthResponse;
 
-      expect(body.access_token).toBeDefined();
+      // Проверяем поля согласно types.ts
+      expect(body.accessToken).toBeDefined();
+      expect(typeof body.accessToken).toBe('string');
+
+      expect(body.user).toBeDefined();
       expect(body.user.email).toBe(email);
+      expect(body.user.username).toBe(username);
+      expect(body.user._id).toBeDefined();
     });
 
     it("should return 409 if email already exists", async () => {
       await server
         .post("/auth/register")
         .send({
-          email,
+          email, // Тот же email
           username: `another_${unique()}`,
           password,
         })
@@ -86,8 +93,8 @@ describe("AuthModule (E2E API)", () => {
     });
   });
 
-  describe("/auth/login (POST)", () => {
-    it("should login and return token", async () => {
+  describe("POST /auth/login", () => {
+    it("should login and return accessToken", async () => {
       const res: Response = await server
         .post("/auth/login")
         .send({
@@ -98,7 +105,7 @@ describe("AuthModule (E2E API)", () => {
 
       const body = res.body as AuthResponse;
 
-      expect(body.access_token).toBeDefined();
+      expect(body.accessToken).toBeDefined();
       expect(body.user.email).toBe(email);
     });
 

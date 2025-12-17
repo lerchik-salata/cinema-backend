@@ -1,29 +1,38 @@
 import { Module, forwardRef } from "@nestjs/common";
-import { JwtModule } from "@nestjs/jwt";
-import { PassportModule } from "@nestjs/passport";
 import { ConfigService } from "@nestjs/config";
 import { UsersModule } from "../users/users.module";
 import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
-import { JwtStrategy } from "./strategies/jwt.strategy";
-import { HashingService } from "./hashing/hashing.service";
+import { UserRepositoryAdapter } from "./user.repository.adapter";
+import { CinemaAuthModule } from "cinema-auth";
 
 @Module({
   imports: [
     forwardRef(() => UsersModule),
-    PassportModule,
-    JwtModule.registerAsync({
+    CinemaAuthModule.registerAsync({
       imports: [],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>("JWT_SECRET"),
-        signOptions: { expiresIn: "60m" },
+        jwtSecret: configService.get<string>("JWT_SECRET") || "secretKey",
+        jwtExpiresIn: "60m",
       }),
       inject: [ConfigService],
-      global: true,
     }),
   ],
-  providers: [AuthService, JwtStrategy, HashingService],
+  providers: [
+    AuthService,
+    UserRepositoryAdapter,
+    {
+      provide: "IUserRepository",
+      useClass: UserRepositoryAdapter,
+    },
+  ],
   controllers: [AuthController],
-  exports: [AuthService, HashingService],
+  exports: [AuthService],
 })
 export class AuthModule {}
+
+// - Анекдот для Вас
+// — Тату, а чому сонце сходить на сході, а заходить на заході?
+// — Синку, воно працює?
+// — Так.
+// — От і не чіпай!

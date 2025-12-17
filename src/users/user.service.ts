@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateUserDto } from "../auth/dto/create-user.dto";
-import { HashingService } from "../auth/hashing/hashing.service";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { User, UserDocument } from "./schemas/user.schema";
@@ -9,11 +8,10 @@ import { UserRole } from "./enums/user-role.enum";
 @Injectable()
 export class UsersService {
   constructor(
-    private hashingService: HashingService,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
-  async findOrCreateAdmin(email: string, password: string): Promise<void> {
+  async findOrCreateAdmin(email: string, passwordHash: string): Promise<void> {
     const existingAdmin = await this.userModel.findOne({ email }).exec();
 
     if (existingAdmin) {
@@ -23,8 +21,6 @@ export class UsersService {
       }
       return;
     }
-
-    const passwordHash = await this.hashingService.hashPassword(password);
 
     const newAdmin = new this.userModel({
       email: email,
@@ -65,13 +61,12 @@ export class UsersService {
     }
   }
 
-  async changePassword(id: string, newPassword: string): Promise<void> {
+  async changePassword(id: string, newPasswordHash: string): Promise<void> {
     const user = await this.findOneById(id);
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    const newPasswordHash = await this.hashingService.hashPassword(newPassword);
     user.passwordHash = newPasswordHash;
     await user.save();
   }

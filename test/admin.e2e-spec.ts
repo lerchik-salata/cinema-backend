@@ -52,6 +52,7 @@ describe("AdminModule (E2E API)", () => {
     );
 
     await app.init();
+    // @ts-ignore
     server = request(app.getHttpServer());
 
     usersService = moduleFixture.get<UsersService>(UsersService);

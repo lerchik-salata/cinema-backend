@@ -1,54 +1,35 @@
-import { Injectable, ConflictException, UnauthorizedException } from "@nestjs/common";
-import { UsersService } from "../users/user.service";
-import { HashingService } from "./hashing/hashing.service";
-import { ConfigService } from "@nestjs/config";
-import { JwtService } from "@nestjs/jwt";
+import { Injectable } from "@nestjs/common";
+import { CoreAuthService, CoreAuthResponse } from "cinema-auth";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { UserResponseDto } from "../users/dto/user.dto";
 import { plainToInstance } from "class-transformer";
+import { UserResponseDto } from "../users/dto/user.dto";
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-    private configService: ConfigService,
-    private hashingService: HashingService,
-  ) {}
+  constructor(private readonly coreAuthService: CoreAuthService) {}
 
   async register(createUserDto: CreateUserDto) {
-    if (await this.usersService.findOneByEmail(createUserDto.email)) {
-      throw new ConflictException("The user already exists");
-    }
+    const result = await this.coreAuthService.register(
+      { email: createUserDto.email, username: createUserDto.username },
+      createUserDto.password,
+    );
 
-    const passwordHash = await this.hashingService.hashPassword(createUserDto.password);
-    const newUser = await this.usersService.create(createUserDto, passwordHash);
-
-    const payload = { sub: newUser._id, username: newUser.username };
-    const safeUser = plainToInstance(UserResponseDto, newUser, { excludeExtraneousValues: true });
-
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-      user: safeUser,
-    };
+    return this.adaptResponse(result);
   }
 
   async login(email: string, pass: string) {
-    const user = await this.usersService.findOneByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException("Incorrect email or password");
-    }
+    const result = await this.coreAuthService.login(email, pass);
 
-    const isPasswordMatching = await this.hashingService.comparePasswords(pass, user.passwordHash);
-    if (!isPasswordMatching) {
-      throw new UnauthorizedException("Incorrect email or password");
-    }
+    return this.adaptResponse(result);
+  }
 
-    const payload = { sub: user._id, username: user.username };
-    const safeUser = plainToInstance(UserResponseDto, user, { excludeExtraneousValues: true });
+  private adaptResponse(coreResponse: CoreAuthResponse) {
+    const safeUser = plainToInstance(UserResponseDto, coreResponse.user, {
+      excludeExtraneousValues: true,
+    });
 
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: coreResponse.accessToken,
       user: safeUser,
     };
   }
