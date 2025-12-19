@@ -39,6 +39,7 @@ describe("AuthModule (E2E API)", () => {
     );
 
     await app.init();
+    // @ts-ignore
     server = request(app.getHttpServer());
   });
 
